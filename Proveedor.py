@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -143,6 +143,7 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
     volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page))
 
     # Layout
+    actualizar_tabla()
     page.controls.clear()
     page.add(
         ft.Column(
@@ -161,5 +162,5 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
         )
     )
 
-    actualizar_tabla()
+    
     page.update()

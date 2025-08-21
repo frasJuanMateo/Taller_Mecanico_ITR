@@ -6,11 +6,11 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
         #ssl_disabled=True,
     )
-    if connection.is_connected():
+    if connection.is_connecteda():
         cursor = connection.cursor()
         print('Conexión exitosa')
 except Exception as ex:
@@ -20,6 +20,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     #Modificar esto para que se adapte a la estructura de la otra tabla
     page.title = "Gestión de Usuarios"
     page.scroll = True
+    
     nombre = ft.TextField(label="Nombre", width=300)
     apellido = ft.TextField(label="Apellido", width=300)
     email = ft.TextField(label="Email", width=300)
@@ -113,22 +114,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             ft.DataColumn(ft.Text("Usuario")),
             ft.DataColumn(ft.Text("")),
             ft.DataColumn(ft.Text("")),
-        ],
-        rows=[
-            ft.DataRow(
-                cells=[
-                    ft.DataCell(ft.Text(u['nombre'])),
-                    ft.DataCell(ft.Text(u['apellido'])),
-                    ft.DataCell(ft.Text(u['email'])),
-                    ft.DataCell(ft.Text(u['telefono'])),
-                    ft.DataCell(ft.Text(u['usuario'])),
-                    ft.DataCell(ft.Button("Eliminar", icon=ft.Icons.DELETE, on_click=lambda e, user=u: eliminar_usuario(u['usuario']))),
-                    ft.DataCell(ft.Button("Editar",icon=ft.Icons.EDIT, on_click=lambda e, user=u: editar_usuario(u['usuario']))),
-                    # ft.DataCell(ft.Text(u['contraseña']))  # No mostrar la contraseña en la tabla
-                ]
-            )
-            for u in cargar_usuarios_data()
-        ],
+        ], rows=[],
     )
 
     def actualizar_tabla():
@@ -151,18 +137,18 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             )
         page.update()
 
-    def dropdown_changed(e):
+    def busqueda_changed(e):
         selected_value = e.control.value
         page.update()
         
-    dd = ft.Dropdown(
+    busqueda = ft.Dropdown(
         border=ft.InputBorder.UNDERLINE,
         editable=True,
         leading_icon=ft.Icons.SEARCH,
         label="Usuarios",
         width=300,
         options=[],
-        on_change=dropdown_changed,
+        on_change=busqueda_changed,
         enable_filter=True,
         enable_search=True,
     )
@@ -175,13 +161,16 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         ]
         if not cargar_usuarios_data():
             opciones = []
-        dd.options = opciones
+        busqueda.options = opciones
+
     get_opciones()
+    actualizar_tabla()
+    
     page.controls.clear()
     page.add(
         ft.Column(
             [
-                dd,
+                busqueda,
                 ft.Text("Usuarios registrados:", size=18, weight="bold"),
                 tabla_usuarios,
                 ft.Divider(),

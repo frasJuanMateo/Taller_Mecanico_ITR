@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -19,6 +19,7 @@ except Exception as ex:
 def Herramienta_Cliente(page: ft.Page, volver_callback):
     page.title = "Gestión de Clientes"
     page.scroll = True
+    
     cod_cliente = ft.TextField(label="Código de Cliente", width=200)
     dni = ft.TextField(label="DNI", width=200)
     apellido = ft.TextField(label="Apellido", width=300)

@@ -7,7 +7,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -19,6 +19,7 @@ except Exception as ex:
 def Herramienta_Repuestos(page: ft.Page, volver_callback):
     page.title = "Gestión de Repuestos"
     page.scroll = True
+    
     cod_repuesto = ft.TextField(label="Código de repuesto", width=300)
     descripcion = ft.TextField(label="Descripción", width=300)
     ingreso = ft.TextField(label="Ingreso (YYYY-MM-DD HH:MM:SS)", width=300)
