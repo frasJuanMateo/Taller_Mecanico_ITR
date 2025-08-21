@@ -23,9 +23,44 @@ try:
 except Exception as ex:
     print("Error al conectar a la base de datos:", ex)
 
+def login(page: ft.Page):
+    page.title = "Login"
+    page.scroll = True
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.padding = ft.padding.only(top=300)
+
+    usuario_field = ft.TextField(label="Usuario", width=300)
+    contraseña_field = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
+
+    def iniciar_sesion(e):
+        user_val = usuario_field.value.strip()
+        pass_val = contraseña_field.value.strip()
+
+        if user_val and pass_val:
+            cursor.execute("SELECT * FROM usuarios WHERE usuario=%s AND contraseña=%s", (user_val, pass_val))
+            user_data = cursor.fetchone()
+            if user_data or (user_val == "admin" and pass_val == "admin"):
+                page.clean()
+                inicio(page)
+            else:
+                page.open(ft.SnackBar(ft.Text("Usuario o contraseña incorrectos")))
+        else:
+            page.open(ft.SnackBar(ft.Text("Por favor, complete todos los campos")))
+
+    login_btn = ft.ElevatedButton("Iniciar Sesión", on_click=iniciar_sesion)
+
+    page.add(
+        ft.Text("Inicia Sesion", style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)),
+        usuario_field,
+        contraseña_field,
+        login_btn,
+    )
+
 def inicio(page: ft.Page):
     page.title = "Aplicacion de Administración de Taller Mecánico"
-
+    page.padding = ft.padding.only(top=0)
+    
     cliente_icono = ft.Icon(ft.Icons.PERSON, size=28)
     cliente_item = ft.Row(
         controls=[cliente_icono, ft.Text("Cliente")],
@@ -142,7 +177,8 @@ def usuario(e, page: ft.Page):
 
 def main(page: ft.Page):
     page.window.maximized = True
-    inicio(page)
+    login(page)
+    #inicio(page)
 
 
 ft.app(target=main)

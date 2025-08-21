@@ -26,7 +26,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     email = ft.TextField(label="Email", width=300)
     telefono = ft.TextField(label="Teléfono", width=300)
     usuario = ft.TextField(label="Usuario", width=300)
-    contraseña = ft.TextField(label="Contraseña", password=True, width=300)
+    contraseña = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
 
     def limpiar_campos(e):
         nombre.value = ""
@@ -163,14 +163,16 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         leading_icon=ft.Icons.SEARCH,
         label="Usuarios",
         width=300,
-        options=[],
+        options=[ft.dropdown.Option(content=ft.Text("Seleccione el usuario"), key="Seleccione el usuario")],
         on_change=busqueda_changed,
         enable_filter=True,
         enable_search=True,
+        text_align= ft.TextAlign.CENTER,
     )
     
     def get_opciones():
         opciones = [
+            ft.dropdown.Option(content=ft.Text("Seleccione el usuario"), key="Seleccione el usuario")] + [
             ft.dropdown.Option(
                 content=ft.Text(u['usuario']), key=u['usuario']
             ) for u in cargar_usuarios_data()
