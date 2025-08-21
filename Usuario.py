@@ -10,7 +10,7 @@ try:
         database='taller_mecanico',
         #ssl_disabled=True,
     )
-    if connection.is_connecteda():
+    if connection.is_connected():
         cursor = connection.cursor()
         print('Conexión exitosa')
 except Exception as ex:
@@ -139,6 +139,22 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
 
     def busqueda_changed(e):
         selected_value = e.control.value
+        
+        for row in tabla_usuarios.rows:
+            username_cell = row.cells[4].content.value
+            
+            if username_cell == selected_value:
+                row.color = ft.Colors.BLUE_200
+                for cell in row.cells:
+                    if isinstance(cell.content, ft.Text):
+                        cell.content.color = ft.Colors.BLACK
+
+            else:
+                row.color = None
+                for cell in row.cells:
+                    if isinstance(cell.content, ft.Text):
+                        cell.content.color = None
+        
         page.update()
         
     busqueda = ft.Dropdown(
