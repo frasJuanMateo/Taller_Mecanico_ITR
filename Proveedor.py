@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='461315',
+        password='123456',
         database='taller_mecanico',
     )
     if connection.is_connected():

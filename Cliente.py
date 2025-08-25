@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='461315',
+        password='123456',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -25,7 +25,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
     apellido = ft.TextField(label="Apellido", width=300)
     nombre = ft.TextField(label="Nombre", width=300)
     direccion = ft.TextField(label="Dirección", width=300)
-    tele_contac = ft.TextField(label="Teléfono de contacto", width=200)
+    telefono = ft.TextField(label="Teléfono", width=200)
 
     def limpiar_campos(e=None):
         cod_cliente.value = ""
@@ -33,12 +33,12 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
         apellido.value = ""
         nombre.value = ""
         direccion.value = ""
-        tele_contac.value = ""
+        telefono.value = ""
         page.update()
 
     def cargar_clientes_data():
         cursor.execute("""
-            SELECT c.cod_cliente, p.dni, p.apellido, p.nombre, p.direccion, p.tele_contac
+            SELECT c.cod_cliente, p.dni, p.apellido, p.nombre, p.direccion, p.telefono
             FROM cliente c
             JOIN persona p ON c.dni = p.dni
         """)
@@ -50,7 +50,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
                 "apellido": row[2],
                 "nombre": row[3],
                 "direccion": row[4],
-                "tele_contac": row[5]
+                "telefono": row[5]
             }
             for row in data
         ]
@@ -66,7 +66,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
                         ft.DataCell(ft.Text(cli["apellido"])),
                         ft.DataCell(ft.Text(cli["nombre"])),
                         ft.DataCell(ft.Text(cli["direccion"] or "")),
-                        ft.DataCell(ft.Text(cli["tele_contac"] or "")),
+                        ft.DataCell(ft.Text(cli["telefono"] or "")),
                         ft.DataCell(ft.TextButton("Eliminar", icon=ft.Icons.DELETE,
                                                   on_click=lambda e, cod=cli["cod_cliente"]: eliminar_cliente(cod))),
                         ft.DataCell(ft.TextButton("Editar", icon=ft.Icons.EDIT,
@@ -82,7 +82,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
         apellido_val = apellido.value.strip()
         nombre_val = nombre.value.strip()
         direccion_val = direccion.value.strip()
-        tele_val = tele_contac.value.strip()
+        tele_val = telefono.value.strip()
 
         if not all([cod_val, dni_val, apellido_val, nombre_val]):
             page.open(ft.SnackBar(ft.Text("Código, DNI, Apellido y Nombre son obligatorios")))
@@ -91,7 +91,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
         try:
             # Insertar en persona
             cursor.execute(
-                "INSERT INTO persona (dni, apellido, nombre, direccion, tele_contac) VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO persona (dni, apellido, nombre, direccion, telefono) VALUES (%s, %s, %s, %s, %s)",
                 (dni_val, apellido_val, nombre_val, direccion_val or None, tele_val or None)
             )
             # Insertar en cliente
@@ -124,7 +124,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
 
     def editar_cliente(cod_val):
         cursor.execute("""
-            SELECT c.cod_cliente, p.dni, p.apellido, p.nombre, p.direccion, p.tele_contac
+            SELECT c.cod_cliente, p.dni, p.apellido, p.nombre, p.direccion, p.telefono
             FROM cliente c
             JOIN persona p ON c.dni = p.dni
             WHERE c.cod_cliente = %s
@@ -136,7 +136,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
             apellido.value = cli[2]
             nombre.value = cli[3]
             direccion.value = cli[4] or ""
-            tele_contac.value = cli[5] or ""
+            telefono.value = cli[5] or ""
             # Borro el registro para reemplazarlo al guardar
             eliminar_cliente(cod_val)
             page.update()
@@ -169,7 +169,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
                 tabla_clientes,
                 ft.Divider(),
                 ft.Text("Gestión de Clientes", size=24, weight="bold"),
-                cod_cliente, dni, apellido, nombre, direccion, tele_contac,
+                cod_cliente, dni, apellido, nombre, direccion, telefono,
                 ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),
             ],
             spacing=10,

@@ -12,7 +12,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='461315',
+        password='123456',
         database='taller_mecanico',
         #ssl_disabled=True,
     )
@@ -31,20 +31,22 @@ def login(page: ft.Page):
     page.padding = ft.padding.only(top=300)
 
     usuario_field = ft.TextField(label="Usuario", width=300)
+    email_field = ft.TextField(label="Email", width=300)
     contraseña_field = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
 
     def iniciar_sesion(e):
         user_val = usuario_field.value.strip()
+        email_val = email_field.value.strip()
         pass_val = contraseña_field.value.strip()
 
-        if user_val and pass_val:
-            cursor.execute("SELECT * FROM usuarios WHERE usuario=%s AND contraseña=%s", (user_val, pass_val))
+        if user_val and email_val and pass_val:
+            cursor.execute("SELECT * FROM usuarios WHERE usuario=%s AND email=%s AND contraseña=%s", (user_val, email_val, pass_val))
             user_data = cursor.fetchone()
-            if user_data or (user_val == "admin" and pass_val == "admin"):
+            if user_data or (user_val == "admin" and email_val == "admin" and pass_val == "admin"):
                 page.clean()
                 inicio(page)
             else:
-                page.open(ft.SnackBar(ft.Text("Usuario o contraseña incorrectos")))
+                page.open(ft.SnackBar(ft.Text("Usuario, email o contraseña incorrectos")))
         else:
             page.open(ft.SnackBar(ft.Text("Por favor, complete todos los campos")))
 
@@ -53,6 +55,7 @@ def login(page: ft.Page):
     page.add(
         ft.Text("Inicia Sesion", style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)),
         usuario_field,
+        email_field,
         contraseña_field,
         login_btn,
     )

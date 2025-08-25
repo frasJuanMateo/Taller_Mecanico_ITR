@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='461315',
+        password='123456',
         database='taller_mecanico',
         #ssl_disabled=True,
     )
@@ -21,29 +21,24 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     page.title = "Gestión de Usuarios"
     page.scroll = True
     
-    nombre = ft.TextField(label="Nombre", width=300)
-    apellido = ft.TextField(label="Apellido", width=300)
+    
     email = ft.TextField(label="Email", width=300)
-    telefono = ft.TextField(label="Teléfono", width=300)
     usuario = ft.TextField(label="Usuario", width=300)
     contraseña = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
 
     def limpiar_campos(e):
-        nombre.value = ""
-        apellido.value = ""
         email.value = ""
-        telefono.value = ""
         usuario.value = ""
         contraseña.value = ""
         page.update()
 
     def cargar_usuarios_data():
-        cursor.execute("SELECT nombre, apellido, email, telefono, usuario, contraseña FROM usuarios")
+        cursor.execute("SELECT email, usuario, contraseña FROM usuarios")
         usuarios_data = cursor.fetchall()
         if not usuarios_data:
             return []
         else:
-            usuarios_data = [{'nombre': u[0], 'apellido': u[1], 'email': u[2], 'telefono': u[3], 'usuario': u[4], 'contraseña': u[5]} for u in usuarios_data]
+            usuarios_data = [{'email': u[0], 'usuario': u[1], 'contraseña': u[2]} for u in usuarios_data]
             page.update()
             return usuarios_data
     
@@ -53,21 +48,18 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page))
 
     def guardar_usuario(e):
-        nombre_val = nombre.value.strip()
-        apellido_val = apellido.value.strip()
         email_val = email.value.strip()
-        telefono_val = telefono.value.strip()
         usuario_val = usuario.value.strip()
         contraseña_val = contraseña.value.strip()
 
-        if not all([nombre_val, apellido_val, email_val, telefono_val, usuario_val, contraseña_val]):
+        if not all([email_val, usuario_val, contraseña_val]):
             page.open(ft.SnackBar(ft.Text("Todos los campos son obligatorios")))
             return
 
         try:
             cursor.execute(
-                "INSERT INTO usuarios (nombre, apellido, email, telefono, usuario, contraseña) VALUES (%s, %s, %s, %s, %s, %s)",
-                (nombre_val, apellido_val, email_val, telefono_val, usuario_val, contraseña_val)
+                "INSERT INTO usuarios (email, usuario, contraseña) VALUES (%s, %s, %s)",
+                (email_val, usuario_val, contraseña_val)
             )
             connection.commit()
             actualizar_tabla()  # Recargar la tabla de usuarios
@@ -82,9 +74,9 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
 
     
 
-    def eliminar_usuario(username):
+    def eliminar_usuario(email_val):
         try:
-            cursor.execute("DELETE FROM usuarios WHERE usuario = %s", (username,))
+            cursor.execute("DELETE FROM usuarios WHERE email = %s", (email_val,))
             connection.commit()
             actualizar_tabla()  # Recargar la tabla de usuarios
             get_opciones()
@@ -92,25 +84,19 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         except Exception as ex:
             print(f"Error al eliminar el usuario: {ex}")
 
-    def editar_usuario(username):
-        cursor.execute("SELECT * FROM usuarios WHERE usuario = %s", (username,))
+    def editar_usuario(email_val):
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email_val,))
         user_data = cursor.fetchone()
         if user_data:
-            nombre.value = user_data[0]
-            apellido.value = user_data[1]
-            email.value = user_data[2]
-            telefono.value = user_data[3]
-            usuario.value = user_data[4]
-            contraseña.value = user_data[5]
-            eliminar_usuario(username)
+            email.value = user_data[0]
+            usuario.value = user_data[1]
+            contraseña.value = user_data[2]
+            eliminar_usuario(email_val)
             page.update()
     
     tabla_usuarios = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("Nombre")),
-            ft.DataColumn(ft.Text("Apellido")),
             ft.DataColumn(ft.Text("Email")),
-            ft.DataColumn(ft.Text("Teléfono")),
             ft.DataColumn(ft.Text("Usuario")),
             ft.DataColumn(ft.Text("")),
             ft.DataColumn(ft.Text("")),
@@ -123,15 +109,12 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             tabla_usuarios.rows.append(
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(u['nombre'])),
-                        ft.DataCell(ft.Text(u['apellido'])),
                         ft.DataCell(ft.Text(u['email'])),
-                        ft.DataCell(ft.Text(u['telefono'])),
                         ft.DataCell(ft.Text(u['usuario'])),
                         ft.DataCell(ft.TextButton("Eliminar", icon=ft.Icons.DELETE,
-                                                on_click=lambda e, user=u: eliminar_usuario(user['usuario']))),
+                                                on_click=lambda e, user=u: eliminar_usuario(user['email']))),
                         ft.DataCell(ft.TextButton("Editar", icon=ft.Icons.EDIT,
-                                                on_click=lambda e, user=u: editar_usuario(user['usuario']))),
+                                                on_click=lambda e, user=u: editar_usuario(user['email']))),
                     ]
                 )
             )
@@ -193,10 +176,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                 tabla_usuarios,
                 ft.Divider(),
                 ft.Text("Gestión de Usuarios", size=24, weight="bold"),
-                nombre,
-                apellido,
                 email,
-                telefono,
                 usuario,
                 contraseña,
                 ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),

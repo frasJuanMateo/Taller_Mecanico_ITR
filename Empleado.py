@@ -6,7 +6,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='461315',
+        password='123456',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -24,7 +24,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
     apellido = ft.TextField(label="Apellido", width=300)
     nombre = ft.TextField(label="Nombre", width=300)
     direccion = ft.TextField(label="Dirección", width=300)
-    tele_contac = ft.TextField(label="Teléfono de contacto", width=200)
+    telefono = ft.TextField(label="Teléfono", width=200)
     legajo = ft.TextField(label="Legajo", width=150)
 
     def limpiar_campos(e=None):
@@ -32,13 +32,13 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
         apellido.value = ""
         nombre.value = ""
         direccion.value = ""
-        tele_contac.value = ""
+        telefono.value = ""
         legajo.value = ""
         page.update()
 
     def cargar_empleados_data():
         cursor.execute("""
-            SELECT p.dni, p.apellido, p.nombre, p.direccion, p.tele_contac, e.legajo
+            SELECT p.dni, p.apellido, p.nombre, p.direccion, p.telefono, e.legajo
             FROM persona p
             JOIN empleado e ON p.dni = e.dni
         """)
@@ -49,7 +49,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
                 "apellido": row[1],
                 "nombre": row[2],
                 "direccion": row[3],
-                "tele_contac": row[4],
+                "telefono": row[4],
                 "legajo": row[5]
             }
             for row in data
@@ -65,7 +65,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
                         ft.DataCell(ft.Text(emp["apellido"])),
                         ft.DataCell(ft.Text(emp["nombre"])),
                         ft.DataCell(ft.Text(emp["direccion"] or "")),
-                        ft.DataCell(ft.Text(emp["tele_contac"] or "")),
+                        ft.DataCell(ft.Text(emp["telefono"] or "")),
                         ft.DataCell(ft.Text(str(emp["legajo"]))),
                         ft.DataCell(ft.TextButton("Eliminar", icon=ft.Icons.DELETE,
                                                   on_click=lambda e, dni_val=emp["dni"]: eliminar_empleado(dni_val))),
@@ -81,7 +81,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
         apellido_val = apellido.value.strip()
         nombre_val = nombre.value.strip()
         direccion_val = direccion.value.strip()
-        tele_val = tele_contac.value.strip()
+        tele_val = telefono.value.strip()
         legajo_val = legajo.value.strip()
 
         if not all([dni_val, apellido_val, nombre_val, legajo_val]):
@@ -91,7 +91,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
         try:
             # Insertar en persona
             cursor.execute(
-                "INSERT INTO persona (dni, apellido, nombre, direccion, tele_contac) VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO persona (dni, apellido, nombre, direccion, telefono) VALUES (%s, %s, %s, %s, %s)",
                 (dni_val, apellido_val, nombre_val, direccion_val or None, tele_val or None)
             )
             # Insertar en empleado
@@ -120,7 +120,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
 
     def editar_empleado(dni_val):
         cursor.execute("""
-            SELECT p.dni, p.apellido, p.nombre, p.direccion, p.tele_contac, e.legajo
+            SELECT p.dni, p.apellido, p.nombre, p.direccion, p.telefono, e.legajo
             FROM persona p
             JOIN empleado e ON p.dni = e.dni
             WHERE p.dni = %s
@@ -131,7 +131,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
             apellido.value = emp[1]
             nombre.value = emp[2]
             direccion.value = emp[3] or ""
-            tele_contac.value = emp[4] or ""
+            telefono.value = emp[4] or ""
             legajo.value = str(emp[5])
             # Borro el registro para reemplazarlo al guardar
             eliminar_empleado(dni_val)
@@ -165,7 +165,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
                 tabla_empleados,
                 ft.Divider(),
                 ft.Text("Gestión de Empleados", size=24, weight="bold"),
-                dni, apellido, nombre, direccion, tele_contac, legajo,
+                dni, apellido, nombre, direccion, telefono, legajo,
                 ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),
             ],
             spacing=10,

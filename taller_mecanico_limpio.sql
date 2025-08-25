@@ -8,7 +8,7 @@ CREATE TABLE persona (
   apellido VARCHAR(40) NOT NULL,
   nombre VARCHAR(50) NOT NULL,
   direccion VARCHAR(50) DEFAULT NULL,
-  tele_contac VARCHAR(12) DEFAULT NULL,
+  telefono VARCHAR(12) DEFAULT NULL,
   PRIMARY KEY (dni)
 );
 
@@ -38,13 +38,11 @@ CREATE TABLE repuestos (
 
 DROP TABLE IF EXISTS usuarios;
 CREATE TABLE usuarios (
-  nombre VARCHAR(50) NOT NULL,
-  apellido VARCHAR(50) NOT NULL,
+  /*cod_cliente VARCHAR(20) NOT NULL,*/
   email VARCHAR(50) NOT NULL,
-  telefono VARCHAR(15) NOT NULL,
   usuario VARCHAR(20) NOT NULL,
   contraseña VARCHAR(20) NOT NULL,
-  PRIMARY KEY (usuario)
+  PRIMARY KEY (email)
 );
 
 DROP TABLE IF EXISTS cliente;
