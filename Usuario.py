@@ -124,10 +124,10 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         selected_value = e.control.value
         
         for row in tabla_usuarios.rows:
-            username_cell = row.cells[4].content.value
+            email_cell = row.cells[1].content.value
             
-            if username_cell == selected_value:
-                row.color = ft.Colors.BLUE_200
+            if email_cell == selected_value:
+                row.color = ft.Colors.YELLOW_100
                 for cell in row.cells:
                     if isinstance(cell.content, ft.Text):
                         cell.content.color = ft.Colors.BLACK
@@ -150,8 +150,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         on_change=busqueda_changed,
         enable_filter=True,
         enable_search=True,
-        text_align= ft.TextAlign.CENTER,
-    )
+        text_align= ft.TextAlign.CENTER,)
     
     def get_opciones():
         opciones = [
