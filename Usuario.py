@@ -9,7 +9,6 @@ try:
         user='root',
         password='123456',
         database='taller_mecanico',
-        #ssl_disabled=True,
     )
     if connection.is_connected():
         cursor = connection.cursor()
@@ -17,12 +16,11 @@ try:
 except Exception as ex:
     print("Error al conectar a la base de datos:", ex)
 
+
 def Herramienta_Usuario(page: ft.Page, volver_callback):
-    #Modificar esto para que se adapte a la estructura de la otra tabla
     page.title = "Gestión de Usuarios"
     page.scroll = True
-    
-    
+
     email = ft.TextField(label="Email", width=300)
     usuario = ft.TextField(label="Usuario", width=300)
     contraseña = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
@@ -39,14 +37,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         if not usuarios_data:
             return []
         else:
-            usuarios_data = [{'email': u[0], 'usuario': u[1], 'contraseña': u[2]} for u in usuarios_data]
-            page.update()
-            return usuarios_data
-    
-
-    guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE, on_click=lambda e: guardar_usuario(e))
-    limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.Icons.CLEAR, on_click=lambda e: limpiar_campos(e))
-    volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page))
+            return [{'email': u[0], 'usuario': u[1], 'contraseña': u[2]} for u in usuarios_data]
 
     def guardar_usuario(e):
         email_val = email.value.strip()
@@ -63,24 +54,20 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                 (email_val, usuario_val, contraseña_val)
             )
             connection.commit()
-            actualizar_tabla()  # Recargar la tabla de usuarios
-            #get_opciones()
+            actualizar_tabla()
+            actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Usuario guardado exitosamente")))
-            page.update()
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al guardar el usuario: {ex}")))
         finally:
             limpiar_campos(e)
-            page.update()
-
-    
 
     def eliminar_usuario(email_val):
         try:
             cursor.execute("DELETE FROM usuarios WHERE email = %s", (email_val,))
             connection.commit()
-            actualizar_tabla()  # Recargar la tabla de usuarios
-            #get_opciones()
+            actualizar_tabla()
+            actualizar_opciones_busqueda()
             page.update()
         except Exception as ex:
             print(f"Error al eliminar el usuario: {ex}")
@@ -94,14 +81,15 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             contraseña.value = user_data[2]
             eliminar_usuario(email_val)
             page.update()
-    
+
     tabla_usuarios = ft.DataTable(
         columns=[
             ft.DataColumn(ft.Text("Email")),
             ft.DataColumn(ft.Text("Usuario")),
             ft.DataColumn(ft.Text("")),
             ft.DataColumn(ft.Text("")),
-        ], rows=[],
+        ],
+        rows=[],
     )
 
     def actualizar_tabla():
@@ -113,66 +101,93 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                         ft.DataCell(ft.Text(u['email'])),
                         ft.DataCell(ft.Text(u['usuario'])),
                         ft.DataCell(ft.TextButton("Eliminar", icon=ft.Icons.DELETE,
-                                                on_click=lambda e, user=u: eliminar_usuario(user['email']))),
+                                                  on_click=lambda e, user=u: eliminar_usuario(user['email']))),
                         ft.DataCell(ft.TextButton("Editar", icon=ft.Icons.EDIT,
-                                                on_click=lambda e, user=u: editar_usuario(user['email']))),
+                                                  on_click=lambda e, user=u: editar_usuario(user['email']))),
                     ]
                 )
             )
         page.update()
 
-    buscador = BuscadorDinamico(cursor, "usuarios", "taller_mecanico", cargar_usuarios_data, tabla_usuarios)
-    """def busqueda_changed(e):
-        selected_value = e.control.value
-        
+    def obtener_columnas(tabla_nombre):
+        query = """
+            SELECT COLUMN_NAME 
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = %s 
+            AND TABLE_NAME = %s
+        """
+        cursor.execute(query, (connection.database, tabla_nombre))
+        columnas = [col[0] for col in cursor.fetchall()]
+        return columnas
+
+    
+    # --- BUSCADOR ---
+    columna_selector = ft.Dropdown(
+        label="Buscar por",
+        options = obtener_columnas("usuarios"),
+        width=300,
+    )
+
+    valor_selector = ft.Dropdown(
+        label="Seleccione valor",
+        width=300,
+        visible=False,
+        on_change=lambda e: aplicar_filtro(e.control.value),
+    )
+
+    def actualizar_opciones_busqueda():
+        #Recarga las opciones del segundo dropdown según la columna seleccionada
+        if not columna_selector.value:
+            valor_selector.visible = False
+            page.update()
+            return
+
+        data = cargar_usuarios_data()
+        valores_unicos = sorted(set([u[columna_selector.value] for u in data]))
+        valor_selector.options = [ft.dropdown.Option(v) for v in valores_unicos]
+        valor_selector.visible = True
+        valor_selector.value = None
+        page.update()
+
+    def aplicar_filtro(valor):
+        #Resalta en la tabla el registro que coincida
+        if not columna_selector.value or not valor:
+            return
+
+        #col_index = obtener_columnas("usuarios").index(columna_selector.value)
+        col_index = 0 if columna_selector.value == "email" else 1
+
         for row in tabla_usuarios.rows:
-            email_cell = row.cells[1].content.value
-            
-            if email_cell == selected_value:
+            cell_value = row.cells[col_index].content.value
+            if cell_value == valor:
                 row.color = ft.Colors.YELLOW_100
                 for cell in row.cells:
                     if isinstance(cell.content, ft.Text):
                         cell.content.color = ft.Colors.BLACK
-
             else:
                 row.color = None
                 for cell in row.cells:
                     if isinstance(cell.content, ft.Text):
                         cell.content.color = None
-        
         page.update()
-        
-    busqueda = ft.Dropdown(
-        border=ft.InputBorder.UNDERLINE,
-        editable=True,
-        leading_icon=ft.Icons.SEARCH,
-        label="Usuarios",
-        width=300,
-        options=[ft.dropdown.Option(content=ft.Text("Seleccione el usuario"), key="Seleccione el usuario")],
-        on_change=busqueda_changed,
-        enable_filter=True,
-        enable_search=True,
-        text_align= ft.TextAlign.CENTER,)
-    
-    def get_opciones():
-        opciones = [
-            ft.dropdown.Option(content=ft.Text("Seleccione el usuario"), key="Seleccione el usuario")] + [
-            ft.dropdown.Option(
-                content=ft.Text(u['usuario']), key=u['usuario']
-            ) for u in cargar_usuarios_data()
-        ]
-        if not cargar_usuarios_data():
-            opciones = []
-        busqueda.options = opciones
 
-    get_opciones()"""
+    columna_selector.on_change = lambda e: actualizar_opciones_busqueda()
+
+    # Botones
+    guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE, on_click=guardar_usuario)
+    limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.Icons.CLEAR, on_click=limpiar_campos)
+    volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page))
+
+    # Inicializar
     actualizar_tabla()
-    
+    actualizar_opciones_busqueda()
+
     page.controls.clear()
     page.add(
         ft.Column(
             [
-                buscador,
+                columna_selector,
+                valor_selector,
                 ft.Text("Usuarios registrados:", size=18, weight="bold"),
                 tabla_usuarios,
                 ft.Divider(),
@@ -181,7 +196,6 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                 usuario,
                 contraseña,
                 ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),
-                
             ],
             spacing=10,
         )

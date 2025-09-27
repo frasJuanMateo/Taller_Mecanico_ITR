@@ -45,6 +45,17 @@ CREATE TABLE usuarios (
   PRIMARY KEY (email)
 );
 
+CREATE TABLE detalle_empleado (
+  id_detalle_empleado INT NOT NULL AUTO_INCREMENT,
+  legajo INT NOT NULL,
+  email VARCHAR(50) NOT NULL,
+  PRIMARY KEY (id_detalle_empleado),
+  KEY FK_legajo_empleado (legajo),
+  KEY FK_email_usuario (email),
+  CONSTRAINT FK_email_usuario FOREIGN KEY (email) REFERENCES usuarios (email) ON UPDATE CASCADE,
+  CONSTRAINT FK_legajo_empleado FOREIGN KEY (legajo) REFERENCES empleado (legajo) ON UPDATE CASCADE
+);
+
 DROP TABLE IF EXISTS cliente;
 CREATE TABLE cliente (
   cod_cliente VARCHAR(20) NOT NULL,
