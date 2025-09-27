@@ -1,5 +1,6 @@
 import flet as ft
 import mysql.connector
+from BuscadorDinamico import BuscadorDinamico
 
 try:
     connection = mysql.connector.connect(
@@ -63,7 +64,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             )
             connection.commit()
             actualizar_tabla()  # Recargar la tabla de usuarios
-            get_opciones()
+            #get_opciones()
             page.open(ft.SnackBar(ft.Text("Usuario guardado exitosamente")))
             page.update()
         except Exception as ex:
@@ -79,7 +80,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             cursor.execute("DELETE FROM usuarios WHERE email = %s", (email_val,))
             connection.commit()
             actualizar_tabla()  # Recargar la tabla de usuarios
-            get_opciones()
+            #get_opciones()
             page.update()
         except Exception as ex:
             print(f"Error al eliminar el usuario: {ex}")
@@ -120,7 +121,8 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             )
         page.update()
 
-    def busqueda_changed(e):
+    buscador = BuscadorDinamico(cursor, "usuarios", "taller_mecanico", cargar_usuarios_data, tabla_usuarios)
+    """def busqueda_changed(e):
         selected_value = e.control.value
         
         for row in tabla_usuarios.rows:
@@ -163,14 +165,14 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             opciones = []
         busqueda.options = opciones
 
-    get_opciones()
+    get_opciones()"""
     actualizar_tabla()
     
     page.controls.clear()
     page.add(
         ft.Column(
             [
-                busqueda,
+                buscador,
                 ft.Text("Usuarios registrados:", size=18, weight="bold"),
                 tabla_usuarios,
                 ft.Divider(),
