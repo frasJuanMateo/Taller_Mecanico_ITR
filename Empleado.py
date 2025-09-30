@@ -1,12 +1,13 @@
 import flet as ft
 import mysql.connector
+from BuscadorDinamico import BuscadorDinamico
 
 try:
     connection = mysql.connector.connect(
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -101,6 +102,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
             )
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Empleado guardado exitosamente")))
             limpiar_campos()
         except Exception as ex:
@@ -114,6 +116,7 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
             cursor.execute("DELETE FROM persona WHERE dni = %s", (dni_val,))
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al eliminar: {ex}")))
@@ -154,13 +157,18 @@ def Herramienta_Empleado(page: ft.Page, volver_callback):
         ],
         rows=[]
     )
+   
+    column_keys = ['dni', 'apellido', 'nombre', 'direccion', 'telefono', 'legajo'] 
+    buscador = BuscadorDinamico(cursor, "empleado", "taller_mecanico", cargar_empleados_data, tabla_empleados, column_keys=column_keys)
 
     actualizar_tabla()
-
+    buscador.actualizar_opciones_busqueda()
     page.controls.clear()
+    
     page.add(
         ft.Column(
             [
+                buscador,
                 ft.Text("Empleados registrados:", size=18, weight="bold"),
                 tabla_empleados,
                 ft.Divider(),

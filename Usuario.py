@@ -7,7 +7,7 @@ try:
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -55,7 +55,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             )
             connection.commit()
             actualizar_tabla()
-            actualizar_opciones_busqueda()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Usuario guardado exitosamente")))
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al guardar el usuario: {ex}")))
@@ -67,7 +67,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
             cursor.execute("DELETE FROM usuarios WHERE email = %s", (email_val,))
             connection.commit()
             actualizar_tabla()
-            actualizar_opciones_busqueda()
+            buscador.actualizar_opciones_busqueda()
             page.update()
         except Exception as ex:
             print(f"Error al eliminar el usuario: {ex}")
@@ -122,57 +122,9 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
 
     
     # --- BUSCADOR ---
-    columna_selector = ft.Dropdown(
-        label="Buscar por",
-        options = obtener_columnas("usuarios"),
-        width=300,
-    )
-
-    valor_selector = ft.Dropdown(
-        label="Seleccione valor",
-        width=300,
-        visible=False,
-        on_change=lambda e: aplicar_filtro(e.control.value),
-    )
-
-    def actualizar_opciones_busqueda():
-        #Recarga las opciones del segundo dropdown según la columna seleccionada
-        if not columna_selector.value:
-            valor_selector.visible = False
-            page.update()
-            return
-
-        data = cargar_usuarios_data()
-        valores_unicos = sorted(set([u[columna_selector.value] for u in data]))
-        valor_selector.options = [ft.dropdown.Option(v) for v in valores_unicos]
-        valor_selector.visible = True
-        valor_selector.value = None
-        page.update()
-
-    def aplicar_filtro(valor):
-        #Resalta en la tabla el registro que coincida
-        if not columna_selector.value or not valor:
-            return
-
-        #col_index = obtener_columnas("usuarios").index(columna_selector.value)
-        col_index = 0 if columna_selector.value == "email" else 1
-
-        for row in tabla_usuarios.rows:
-            cell_value = row.cells[col_index].content.value
-            if cell_value == valor:
-                row.color = ft.Colors.YELLOW_100
-                for cell in row.cells:
-                    if isinstance(cell.content, ft.Text):
-                        cell.content.color = ft.Colors.BLACK
-            else:
-                row.color = None
-                for cell in row.cells:
-                    if isinstance(cell.content, ft.Text):
-                        cell.content.color = None
-        page.update()
-
-    columna_selector.on_change = lambda e: actualizar_opciones_busqueda()
-
+    column_keys = ['email', 'usuario']
+    buscador = BuscadorDinamico(cursor, "usuarios", "taller_mecanico", cargar_usuarios_data, tabla_usuarios, column_keys=column_keys)
+    
     # Botones
     guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE, on_click=guardar_usuario)
     limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.Icons.CLEAR, on_click=limpiar_campos)
@@ -180,14 +132,13 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
 
     # Inicializar
     actualizar_tabla()
-    actualizar_opciones_busqueda()
-
+    buscador.actualizar_opciones_busqueda()
     page.controls.clear()
+    
     page.add(
         ft.Column(
             [
-                columna_selector,
-                valor_selector,
+                buscador,
                 ft.Text("Usuarios registrados:", size=18, weight="bold"),
                 tabla_usuarios,
                 ft.Divider(),

@@ -1,12 +1,13 @@
 import flet as ft
 import mysql.connector
+from BuscadorDinamico import BuscadorDinamico
 
 try:
     connection = mysql.connector.connect(
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -101,6 +102,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
             )
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Cliente guardado exitosamente")))
             limpiar_campos()
         except Exception as ex:
@@ -118,6 +120,7 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
             """)
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
 
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al eliminar: {ex}")))
@@ -158,13 +161,18 @@ def Herramienta_Cliente(page: ft.Page, volver_callback):
         ],
         rows=[]
     )
+    
+    column_keys = ['cod_cliente', 'dni', 'apellido', 'nombre', 'direccion', 'telefono']
+    buscador = BuscadorDinamico(cursor, "cliente", "taller_mecanico", cargar_clientes_data, tabla_clientes, column_keys=column_keys)
 
     actualizar_tabla()
-
+    buscador.actualizar_opciones_busqueda()
     page.controls.clear()
+    
     page.add(
         ft.Column(
             [
+                buscador,
                 ft.Text("Clientes registrados:", size=18, weight="bold"),
                 tabla_clientes,
                 ft.Divider(),

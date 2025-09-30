@@ -1,3 +1,4 @@
+
 DROP DATABASE IF EXISTS taller_mecanico;
 CREATE DATABASE IF NOT EXISTS taller_mecanico DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE taller_mecanico;
@@ -10,6 +11,15 @@ CREATE TABLE persona (
   direccion VARCHAR(50) DEFAULT NULL,
   telefono VARCHAR(12) DEFAULT NULL,
   PRIMARY KEY (dni)
+);
+
+DROP TABLE IF EXISTS empleado;
+CREATE TABLE empleado (
+  legajo INT NOT NULL,
+  dni VARCHAR(20) NOT NULL,
+  PRIMARY KEY (legajo),
+  KEY FK_dni_empleado (dni),
+  CONSTRAINT FK_dni_empleado FOREIGN KEY (dni) REFERENCES persona (dni) ON UPDATE CASCADE
 );
 
 DROP TABLE IF EXISTS marca;
@@ -38,22 +48,12 @@ CREATE TABLE repuestos (
 
 DROP TABLE IF EXISTS usuarios;
 CREATE TABLE usuarios (
-  /*cod_cliente VARCHAR(20) NOT NULL,*/
   email VARCHAR(50) NOT NULL,
   usuario VARCHAR(20) NOT NULL,
   contraseña VARCHAR(20) NOT NULL,
+  #legajo INT NOT NULL,
   PRIMARY KEY (email)
-);
-
-CREATE TABLE detalle_empleado (
-  id_detalle_empleado INT NOT NULL AUTO_INCREMENT,
-  legajo INT NOT NULL,
-  email VARCHAR(50) NOT NULL,
-  PRIMARY KEY (id_detalle_empleado),
-  KEY FK_legajo_empleado (legajo),
-  KEY FK_email_usuario (email),
-  CONSTRAINT FK_email_usuario FOREIGN KEY (email) REFERENCES usuarios (email) ON UPDATE CASCADE,
-  CONSTRAINT FK_legajo_empleado FOREIGN KEY (legajo) REFERENCES empleado (legajo) ON UPDATE CASCADE
+  #,CONSTRAINT FK_legajo_usuario FOREIGN KEY (legajo) REFERENCES empleado (legajo) ON UPDATE CASCADE
 );
 
 DROP TABLE IF EXISTS cliente;
@@ -92,14 +92,7 @@ CREATE TABLE customer_detalle (
   CONSTRAINT FK_idCustomer FOREIGN KEY (id_customer) REFERENCES customer_vehiculo (id_customer) ON UPDATE CASCADE
 );
 
-DROP TABLE IF EXISTS empleado;
-CREATE TABLE empleado (
-  legajo INT NOT NULL,
-  dni VARCHAR(20) NOT NULL,
-  PRIMARY KEY (legajo),
-  KEY FK_dni_empleado (dni),
-  CONSTRAINT FK_dni_empleado FOREIGN KEY (dni) REFERENCES persona (dni) ON UPDATE CASCADE
-);
+
 
 DROP TABLE IF EXISTS ficha_tecnica;
 CREATE TABLE ficha_tecnica (

@@ -1,13 +1,14 @@
 import flet as ft
 import mysql.connector
 from datetime import datetime
+from BuscadorDinamico import BuscadorDinamico
 
 try:
     connection = mysql.connector.connect(
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -71,6 +72,7 @@ def Herramienta_Repuestos(page: ft.Page, volver_callback):
             )
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Repuesto guardado exitosamente")))
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al guardar: {ex}")))
@@ -83,6 +85,7 @@ def Herramienta_Repuestos(page: ft.Page, volver_callback):
             cursor.execute("DELETE FROM repuestos WHERE cod_repuesto = %s", (codigo,))
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Repuesto eliminado exitosamente")))
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al eliminar: {ex}")))
@@ -135,17 +138,22 @@ def Herramienta_Repuestos(page: ft.Page, volver_callback):
             )
         page.update()
 
-    actualizar_tabla()
+    column_keys = ['cod_repuesto', 'descripcion', 'ingreso', 'egreso', 'pcio_unit']
+    buscador = BuscadorDinamico(cursor, "repuestos", "taller_mecanico", cargar_repuestos_data, tabla_repuestos, column_keys=column_keys)
 
     # Botones
     guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE, on_click=guardar_repuesto)
     limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.Icons.CLEAR, on_click=limpiar_campos)
     volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page))
-
+    
+    actualizar_tabla()
+    buscador.actualizar_opciones_busqueda()
     page.controls.clear()
+    
     page.add(
         ft.Column(
             [
+                buscador,
                 ft.Text("Repuestos registrados:", size=18, weight="bold"),
                 tabla_repuestos,
                 ft.Divider(),

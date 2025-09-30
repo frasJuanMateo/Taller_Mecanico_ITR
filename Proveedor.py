@@ -1,12 +1,13 @@
 import flet as ft
 import mysql.connector
+from BuscadorDinamico import BuscadorDinamico
 
 try:
     connection = mysql.connector.connect(
         host='localhost',
         port=3306,
         user='root',
-        password='123456',
+        password='461315',
         database='taller_mecanico',
     )
     if connection.is_connected():
@@ -77,6 +78,7 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
 
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Proveedor guardado exitosamente")))
             limpiar_campos()
         except Exception as ex:
@@ -87,6 +89,7 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
             cursor.execute("DELETE FROM proveedor WHERE cod_proveedor = %s", (cod_proveedor,))
             connection.commit()
             actualizar_tabla()
+            buscador.actualizar_opciones_busqueda()
             page.open(ft.SnackBar(ft.Text("Proveedor eliminado exitosamente")))
         except Exception as ex:
             page.open(ft.SnackBar(ft.Text(f"Error al eliminar: {ex}")))
@@ -136,6 +139,9 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
                 )
             )
         page.update()
+    
+    column_keys = ['cod_cliente', 'dni', 'apellido', 'nombre', 'direccion', 'telefono']
+    buscador = BuscadorDinamico(cursor, "proveedor", "taller_mecanico", cargar_proveedores_data, tabla_proveedores, column_keys=column_keys)
 
     # Botones
     guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE, on_click=guardar_proveedor)
@@ -144,10 +150,13 @@ def Herramienta_Proveedor(page: ft.Page, volver_callback):
 
     # Layout
     actualizar_tabla()
+    buscador.actualizar_opciones_busqueda()
     page.controls.clear()
+    
     page.add(
         ft.Column(
             [
+                buscador,
                 ft.Text("Proveedores registrados:", size=18, weight="bold"),
                 tabla_proveedores,
                 ft.Divider(),
