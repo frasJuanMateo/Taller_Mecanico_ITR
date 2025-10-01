@@ -24,34 +24,73 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     email = ft.TextField(label="Email", width=300)
     usuario = ft.TextField(label="Usuario", width=300)
     contraseña = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
+    empleado_dropdown = ft.Dropdown(
+        label="Empleado asignado",
+        width=300,
+        options=[]
+    )
 
     def limpiar_campos(e):
         email.value = ""
         usuario.value = ""
         contraseña.value = ""
         page.update()
+        
+    def cargar_empleados():
+        cursor.execute("""
+            SELECT e.legajo, p.nombre, p.apellido
+            FROM empleado e
+            JOIN persona p ON e.dni = p.dni
+        """)
+        empleados = cursor.fetchall()
+        return [
+            {"legajo": e[0], "nombre": f"{e[1]} {e[2]}"}
+            for e in empleados
+        ]
+        
+    def actualizar_empleados_dropdown():
+        empleados = cargar_empleados()
+        empleado_dropdown.options = [
+            ft.dropdown.Option(str(emp["legajo"]), f"{emp['nombre']} (Legajo {emp['legajo']})")
+            for emp in empleados
+        ]
+        page.update()
+
 
     def cargar_usuarios_data():
-        cursor.execute("SELECT email, usuario, contraseña FROM usuarios")
+        cursor.execute("""
+            SELECT u.email, u.usuario, u.contraseña, u.legajo, p.nombre, p.apellido
+            FROM usuarios u
+            JOIN empleado e ON u.legajo = e.legajo
+            JOIN persona p ON e.dni = p.dni
+        """)
         usuarios_data = cursor.fetchall()
-        if not usuarios_data:
-            return []
-        else:
-            return [{'email': u[0], 'usuario': u[1], 'contraseña': u[2]} for u in usuarios_data]
+        return [
+            {
+                'email': u[0],
+                'usuario': u[1],
+                'contraseña': u[2],
+                'legajo': u[3],
+                'empleado': f"{u[4]} {u[5]}"
+            }
+            for u in usuarios_data
+        ]
+
 
     def guardar_usuario(e):
         email_val = email.value.strip()
         usuario_val = usuario.value.strip()
         contraseña_val = contraseña.value.strip()
+        legajo_val = empleado_dropdown.value
 
-        if not all([email_val, usuario_val, contraseña_val]):
+        if not all([email_val, usuario_val, contraseña_val, legajo_val]):
             page.open(ft.SnackBar(ft.Text("Todos los campos son obligatorios")))
             return
 
         try:
             cursor.execute(
-                "INSERT INTO usuarios (email, usuario, contraseña) VALUES (%s, %s, %s)",
-                (email_val, usuario_val, contraseña_val)
+                "INSERT INTO usuarios (email, usuario, contraseña, legajo) VALUES (%s, %s, %s, %s)",
+                (email_val, usuario_val, contraseña_val, legajo_val)
             )
             connection.commit()
             actualizar_tabla()
@@ -86,6 +125,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
         columns=[
             ft.DataColumn(ft.Text("Email")),
             ft.DataColumn(ft.Text("Usuario")),
+            ft.DataColumn(ft.Text("Empleado")),
             ft.DataColumn(ft.Text("")),
             ft.DataColumn(ft.Text("")),
         ],
@@ -100,10 +140,11 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                     cells=[
                         ft.DataCell(ft.Text(u['email'])),
                         ft.DataCell(ft.Text(u['usuario'])),
+                        ft.DataCell(ft.Text(u['empleado'])),
                         ft.DataCell(ft.TextButton("Eliminar", icon=ft.Icons.DELETE,
-                                                  on_click=lambda e, user=u: eliminar_usuario(user['email']))),
+                                                on_click=lambda e, user=u: eliminar_usuario(user['email']))),
                         ft.DataCell(ft.TextButton("Editar", icon=ft.Icons.EDIT,
-                                                  on_click=lambda e, user=u: editar_usuario(user['email']))),
+                                                on_click=lambda e, user=u: editar_usuario(user['email']))),
                     ]
                 )
             )
@@ -133,6 +174,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     # Inicializar
     actualizar_tabla()
     buscador.actualizar_opciones_busqueda()
+    actualizar_empleados_dropdown()
     page.controls.clear()
     
     page.add(
@@ -146,6 +188,7 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
                 email,
                 usuario,
                 contraseña,
+                empleado_dropdown,
                 ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),
             ],
             spacing=10,

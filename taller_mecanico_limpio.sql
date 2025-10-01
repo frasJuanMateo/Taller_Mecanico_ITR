@@ -51,9 +51,9 @@ CREATE TABLE usuarios (
   email VARCHAR(50) NOT NULL,
   usuario VARCHAR(20) NOT NULL,
   contraseña VARCHAR(20) NOT NULL,
-  #legajo INT NOT NULL,
-  PRIMARY KEY (email)
-  #,CONSTRAINT FK_legajo_usuario FOREIGN KEY (legajo) REFERENCES empleado (legajo) ON UPDATE CASCADE
+  legajo INT NOT NULL,
+  PRIMARY KEY (email),
+  CONSTRAINT FK_legajo_usuario FOREIGN KEY (legajo) REFERENCES empleado (legajo) ON UPDATE CASCADE
 );
 
 DROP TABLE IF EXISTS cliente;
